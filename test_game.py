@@ -1,5 +1,5 @@
 
-from game2 import _get_next_index, _is_word_correct
+from game import _get_next_index, _is_word_correct
 
 
 def test_get_next_index() :

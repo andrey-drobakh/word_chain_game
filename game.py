@@ -1,101 +1,1 @@
-
-
-
-
-
-# payers_list = ['Bob', 'Tom', 'Rise', 'DAN', 'MAGIC']
-
-# retired_players_list = []
-#
-# print(f'\n     {payers_list}     \n')
-#
-# payers_list.append(payers_list[0])
-# payers_list.remove(payers_list[0])
-# w_1 = input(f'       INPUT WORD {payers_list[-1]} : ').lower()
-#
-# winner = payers_list[-1]
-# attempt_counter = 0
-
-
-player_names = input('\n Введите имена игроков через пробел: ').split()
-
-def create_players_list(users):
-    if users and len(users) > 1:
-        retired_players_list = []
-        print(f'\n     {users}     \n')
-        player_names.append(users[0])
-        player_names.remove(users[0])
-        w_1 = input(f'       INPUT WORD {users[-1]} : ').lower()
-        winner = users[-1]
-        attempt_counter = 0
-        print(game(users, retired_players_list, w_1, winner, attempt_counter))
-    elif users and len(users) == 1:
-        print('\n ВСЕГО ОДИН ИГРОК В ИГРЕ')
-    else:
-        print('\n НЕКОРРЕКТНЫЕ ДАННЫЕ')
-
-
-
-
-
-def game(player_list, retired_players_list, w_1, winner, attempt_counter):
-
-    while len(retired_players_list) < len(player_list)-1:
-
-        for name in player_list:
-
-            if name in retired_players_list or name == winner: # Чтобы перешагнуть через элемент с индексом ноль
-                                                   # и не брать тех кто находится в ass_list
-                attempt_counter = 0
-                continue
-
-            while attempt_counter != 3:
-
-                attempt_counter += 1
-                w_2 = input(f'       {name} enter a word starting with a letter: {w_1[-1].upper()},'
-                            f' attempt {attempt_counter} : ').lower()
-
-                if w_2 and w_1[-1] == w_2[0]:
-                    attempt_counter = 0
-                    print(f'\nOK {name}, DONE !\n')
-                    winner = name
-                    w_1 = w_2
-                    break
-                if w_2 == 'StoppedGame':
-                    print(f'\nStopped ! -----{name} is out of the game-----\n')
-                    retired_players_list.append(name)
-                    break
-
-                elif w_1 != w_2 and attempt_counter < 3:
-                    print(f'\nINCORRECT INPUT {name} !\n')
-                    continue
-                elif w_1 != w_2 and attempt_counter == 3:
-                    print(f'\n-----{name} is out of the game-----\n')
-                    attempt_counter = 0
-                    retired_players_list.append(name)
-                    break
-
-    return f'Game winner {winner}'
-
-create_players_list(player_names)
-
-# print('                             Game winner - ', winner)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+from enum import Enum, autoattempt_limit = 3player_names = []word = ''last_word = ''last_move_is_successful = Truecurrent_move_attempts = 0current_player_index = 0stopping_the_game = Falseplayers_presence = Trueplayer_status = Noneplayer = Noneword_lst = []repeat_word = Falseclass PlayerStatus( Enum ):    LEFT_GAME = auto()    LOST = auto()    BAD_PLAYER_NAMES = auto()    WINNER = auto()    STOPPING_GAME = auto()    GAME_NOT_STARTED = auto()    REPEATING_WORD = auto()def _display_message( status : PlayerStatus, name : str = None ) :    if status == PlayerStatus.LOST :        print( name, ' ИСЧЕРПАЛ ПОПЫТКИ И ВЫБЫЛ ИЗ ИГРЫ !' )    elif status == PlayerStatus.GAME_NOT_STARTED :        print()        print( f' В ИГРЕ ОСТАЛСЯ ОДИН ИГРОК ПОД ИМЕНЕМ - { name }, НИКТО НЕ НАЗВАЛ СЛОВО, ИГРА ЗАВЕРШИЛАСЬ !' )    elif status == PlayerStatus.LEFT_GAME :        print( name, 'ВЫШЕЛ ИЗ ИГРЫ !' )    elif status == PlayerStatus.BAD_PLAYER_NAMES :        print( '\n НЕДОСТАТОЧНО ИГРОКОВ ДЛЯ ИГРЫ' )    elif status == PlayerStatus.WINNER :        print( '\n', name,  '----- ПОБЕДИТЕЛЬ ИГРЫ -----' )    elif status == PlayerStatus.STOPPING_GAME :        print( '\n', 'GAME STOPPED ! ' )def read_player_names() :    global player_names, players_presence    player_names = [ name for name in input( 'player names ( only letters, min two players ) : ' ).split() \                     if name.isalpha() ]    if len(player_names) <= 1 :        players_presence = Falsedef display_prompt() :    name = player_names[ current_player_index ]    print( f'{ name } : ', end = '' )def _get_next_index( current_index, player_names ) :    count = len( player_names )    if current_index < count - 1 :        return current_index + 1    return 0def read_player_input() :    global word, last_word    if last_move_is_successful :        last_word = word    word = input().strip()########################################################################################################def _delete_player() :    global current_player_index, current_move_attempts, word    player_names.pop( current_player_index )    current_move_attempts = 0    if current_player_index == len( player_names ) :        current_player_index = 0def display_move_message() :    global player, player_status, repeat_word, last_word    if player_status :        _display_message( player_status, player )        player = None        player_status = None        repeat_word = False        return    elif repeat_word and word[ 0 ] == last_word[ -1 ] :        print('ДАННОЕ СЛОВО УЖЕ НАЗЫВАЛОСЬ, ВВЕДИТЕ ДРУГОЕ !')        repeat_word = False        return    else :        repeat_word = False########################################################################################################def _is_word_correct( word ) -> bool :    global word_lst, repeat_word    if word.isalpha() and last_word :        if word not in word_lst :            return word[ 0 ] == last_word[ -1 ]        repeat_word = True        return False    return word.isalpha()def handle_player_input() :    global current_player_index, last_move_is_successful, current_move_attempts, player_names, \        stopping_the_game, player_status, player, word_lst    if word == '.' :        stopping_the_game = True    elif word == '-' :        last_move_is_successful = False        # name = player_names[ current_player_index ]        player = player_names[ current_player_index ]        player_status = PlayerStatus.LEFT_GAME        _delete_player()        return    if _is_word_correct( word ) :        # go to next player        current_player_index = _get_next_index( current_player_index, player_names )        last_move_is_successful = True        current_move_attempts = 0        word_lst.append( word )    else :        last_move_is_successful = False        if current_move_attempts < attempt_limit -1 :            current_move_attempts += 1        else :            # name = player_names[ current_player_index ]            player_status = PlayerStatus.LOST            player = player_names[ current_player_index ]            _delete_player()def is_game_over() -> bool :    return len( player_names ) <= 1 or stopping_the_gamedef display_game_results() :    if stopping_the_game :        _display_message( PlayerStatus.STOPPING_GAME )    elif not players_presence :        _display_message( PlayerStatus.BAD_PLAYER_NAMES )    elif is_game_over() and last_word : # ПОКАЖЕТ ИМЯ ПОБЕДИТЕЛЯ ЕСЛИ БЫЛО НАЗВАНО ХОТЯ БЫ ОДНО КОРРЕКТНОЕ СЛОВО        name = player_names[ 0 ]        _display_message( PlayerStatus.WINNER, name )    else:        name = player_names[ 0 ]        _display_message( PlayerStatus.GAME_NOT_STARTED, name )def run_game() :    read_player_names()    # display_player_names_errors()    while not is_game_over() :        display_prompt()        read_player_input()        handle_player_input()        display_move_message()    display_game_results()if __name__ == '__main__' :    run_game()
